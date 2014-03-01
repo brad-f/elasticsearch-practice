@@ -1,30 +1,39 @@
 ﻿using PlainElastic.Net;
+using PlainElastic.Net.Mappings;
 using PlainElastic.Net.Queries;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using Web.Search;
 using Web.Service;
 
 namespace Web.Models
 {
-    public class Contact : IIndexable, ISearchable
+    public class Contact : ISearchable
     {
         public string Name { get; set; }
         public string Email { get; set; }
 
-        public IndexCommand BuildIndex()
+        public IndexCommand BuildIndexCommand()
         {
             return Commands.Index("app", "contact", id: Email);
         }
 
-        public SearchCommand BuildCommand()
+        public SearchCommand BuildSearchCommand()
         {
             return Commands.Search("app", "contact");
         }
 
-        public string BuildQuery(string query)
+        public string BuildMappingCommand()
+        {
+            return new MapBuilder<Contact>()
+                .RootObject("contact", r => r
+                    .All(e => e.Enabled(false))
+                    .Dynamic(false)
+                    .Properties(pr => pr
+                        .String(c => c.Name, f => f.Analyzer(DefaultAnalyzers.standard))
+                        .String(c => c.Email, f => f.Analyzer(DefaultAnalyzers.standard))
+                    )
+                ).Build();
+        }
+
+        public string BuildSearchQuery(string query)
         {
             return new QueryBuilder<Contact>()
                 .Query(q => q
@@ -36,8 +45,7 @@ namespace Web.Models
                             )
                         )
                     )
-                )
-                .Build();
+                ).Build();
         }
     }
 }

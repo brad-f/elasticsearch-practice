@@ -120,7 +120,6 @@
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Models\Contact.cs" />
-    <Compile Include="Service\IIndexable.cs" />
     <Compile Include="Service\ISearchable.cs" />
     <Compile Include="Service\SearchService.cs" />
   </ItemGroup>

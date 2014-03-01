@@ -9,16 +9,16 @@ namespace Web.Controllers
 {
     public class SearchController : Controller
     {
-        private readonly SearchService service;
+        private readonly SearchService<Contact> service;
 
         public SearchController()
         {
-            service = new SearchService();
+            service = new SearchService<Contact>();
         }
 
         public ActionResult Index(string q)
         {
-            IList<Contact> contacts = service.Search<Contact>(q).ToList();
+            IList<Contact> contacts = service.Search(q);
             return Json(contacts, JsonRequestBehavior.AllowGet);
         }
     }

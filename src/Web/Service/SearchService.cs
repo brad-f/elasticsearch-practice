@@ -10,7 +10,7 @@ using Web.Service;
 
 namespace Web.Search
 {
-    public class SearchService
+    public class SearchService<T> where T : ISearchable, new()
     {
         private readonly JsonNetSerializer serializer;
 
@@ -19,18 +19,25 @@ namespace Web.Search
             serializer = new JsonNetSerializer();
         }
 
-        public void Index(IIndexable indexable)
+        public void CreateIndexAndMapping()
         {
-            string result = Connection.Put(indexable.BuildIndex(), serializer.ToJson(indexable));
+            T searchable = new T();
+            OperationResult indexResult = Connection.Post(Commands.CreateIndex("app"));
+            OperationResult mappingResult = Connection.Put(Commands.PutMapping("app", "contact"), searchable.BuildMappingCommand());  
+        }
+
+        public void IndexEntity(ISearchable searchable)
+        {
+            string result = Connection.Put(searchable.BuildIndexCommand(), serializer.ToJson(searchable));
             IndexResult indexResult = serializer.ToIndexResult(result);
         }
 
-        public IEnumerable<T> Search<T>(string value) where T : ISearchable, new()
+        public IList<T> Search(string value)
         {
             T t = new T();
-            OperationResult operationResult = Connection.Post(t.BuildCommand(), t.BuildQuery(value));
+            OperationResult operationResult = Connection.Post(t.BuildSearchCommand(), t.BuildSearchQuery(value));
             SearchResult<T> searchResult = serializer.ToSearchResult<T>(operationResult);
-            return searchResult.Documents;
+            return searchResult.Documents.ToList();
         }
 
         private ElasticConnection Connection
